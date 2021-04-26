@@ -108,7 +108,11 @@ export const onSchedule: EventHandler<
 					release.author.html_url,
 					`@${release.author.login}`,
 				)} created new release in ${slack.url(release.html_url, slug)}`;
-				await ctx.message.send(message, { channels });
+				await ctx.message.send(
+					message,
+					{ channels },
+					{ id: `${slug}-${release.name}` },
+				);
 			}
 		} catch (e) {
 			log.warn(`Error monitoring repository: ${e.stack}`);
