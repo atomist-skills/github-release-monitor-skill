@@ -17,7 +17,6 @@
 import {
 	EventHandler,
 	github,
-	handleError,
 	log,
 	slack,
 	state,
