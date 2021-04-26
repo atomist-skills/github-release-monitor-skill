@@ -32,13 +32,15 @@ export const onSchedule: EventHandler<
 	const channels = ctx.configuration.parameters.channels.map(
 		c => c.channelName,
 	);
-	const repositories = ctx.configuration.parameters.repositories.map(r => {
-		const parts = r.split("/");
-		return {
-			owner: parts[0],
-			repo: parts[1],
-		};
-	});
+	const repositories = ctx.configuration.parameters.repositories
+		.sort()
+		.map(r => {
+			const parts = r.split("/");
+			return {
+				owner: parts[0],
+				repo: parts[1],
+			};
+		});
 	const token = ctx.configuration.parameters.token;
 	const knownReleases = await state.hydrate<Record<string, string>>(
 		ctx.configuration.name,
@@ -53,7 +55,7 @@ export const onSchedule: EventHandler<
 	for (const repository of repositories) {
 		try {
 			const slug = `${repository.owner}/${repository.repo}`;
-			log.info(`Monitoring ${slug}`);
+			log.info(`Checking ${slug}`);
 
 			const release = (
 				await api.repos.listReleases({
@@ -62,6 +64,7 @@ export const onSchedule: EventHandler<
 				})
 			).data.filter(r => !r.draft)[0];
 			if (knownReleases[slug] !== release.name) {
+				log.info(`New release ${release.name} found`);
 				knownReleases[slug] = release.name;
 
 				let avatar;
@@ -113,9 +116,11 @@ export const onSchedule: EventHandler<
 					{ channels },
 					{ id: `${slug}-${release.name}` },
 				);
+			} else {
+				log.info(`No wew release found`);
 			}
 		} catch (e) {
-			log.warn(`Error monitoring repository: ${e.stack}`);
+			log.warn(`Error checking repository: ${e.stack}`);
 		}
 	}
 
