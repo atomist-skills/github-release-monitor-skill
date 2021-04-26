@@ -17,6 +17,8 @@
 import {
 	EventHandler,
 	github,
+	handleError,
+	log,
 	slack,
 	state,
 	subscription,
@@ -50,59 +52,67 @@ export const onSchedule: EventHandler<
 	);
 
 	for (const repository of repositories) {
-		const slug = `${repository.owner}/${repository.repo}`;
-		const release = (
-			await api.repos.listReleases({
-				owner: repository.owner,
-				repo: repository.repo,
-			})
-		).data.filter(r => !r.draft)[0];
-		if (knownReleases[slug] !== release.name) {
-			knownReleases[slug] = release.name;
+		try {
+			const slug = `${repository.owner}/${repository.repo}`;
+			log.info(`Monitoring ${slug}`);
 
-			let avatar;
-			try {
-				avatar = (
-					await api.orgs.get({
-						org: repository.owner,
-					})
-				).data.avatar_url;
-			} catch (e) {
-				avatar = (
-					await api.users.getByUsername({
-						username: repository.owner,
-					})
-				).data.avatar_url;
+			const release = (
+				await api.repos.listReleases({
+					owner: repository.owner,
+					repo: repository.repo,
+				})
+			).data.filter(r => !r.draft)[0];
+			if (knownReleases[slug] !== release.name) {
+				knownReleases[slug] = release.name;
+
+				let avatar;
+				try {
+					avatar = (
+						await api.orgs.get({
+							org: repository.owner,
+						})
+					).data.avatar_url;
+				} catch (e) {
+					avatar = (
+						await api.users.getByUsername({
+							username: repository.owner,
+						})
+					).data.avatar_url;
+				}
+
+				const response = await ctx.http.request(avatar, {
+					method: "GET",
+				});
+				const mimeType = response.headers.get("content-type");
+
+				// eslint-disable-next-line @typescript-eslint/no-var-requires
+				const getColors = require("get-image-colors");
+				const colors = (
+					await getColors(await response.buffer(), mimeType)
+				).map((c: any) => c.hex());
+
+				const message = slack.infoMessage(
+					release.name,
+					slack.githubToSlack(release.body),
+					ctx,
+					{
+						author_link: release.html_url,
+						author_icon: avatar,
+						color: colors[0],
+						footer: slack.url(release.html_url, slug),
+						footer_icon:
+							"https://images.atomist.com/rug/github_grey.png",
+						ts: Math.floor(Date.parse(release.created_at) / 1000),
+					},
+				);
+				message.text = `${slack.url(
+					release.author.html_url,
+					`@${release.author.login}`,
+				)} created new release in ${slack.url(release.html_url, slug)}`;
+				await ctx.message.send(message, { channels });
 			}
-
-			const response = await ctx.http.request(avatar, { method: "GET" });
-			const mimeType = response.headers.get("content-type");
-
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const getColors = require("get-image-colors");
-			const colors = (
-				await getColors(await response.buffer(), mimeType)
-			).map((c: any) => c.hex());
-
-			const message = slack.infoMessage(
-				release.name,
-				slack.githubToSlack(release.body),
-				ctx,
-				{
-					author_link: release.html_url,
-					author_icon: avatar,
-					color: colors[0],
-					footer: slack.url(release.html_url, slug),
-					footer_icon:
-						"https://images.atomist.com/rug/github_grey.png",
-					ts: Math.floor(Date.parse(release.created_at) / 1000),
-				},
-			);
-			message.text = `${slack.url(
-				release.author.html_url,
-				`@${release.author.login}`,
-			)} created new release in ${slack.url(release.html_url, slug)}`;
-			await ctx.message.send(message, { channels });
+		} catch (e) {
+			log.warn(`Error monitoring repository: ${e.stack}`);
 		}
 	}
 
