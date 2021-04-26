@@ -31,7 +31,7 @@ export const Skill = skill<Configuration & { schedule: any }>({
 	displayName: "GitHub Release Monitor",
 	categories: [Category.DevOps],
 	iconUrl:
-		"https://raw.githubusercontent.com/atomist-skills/github-auto-merge-skill/main/docs/images/icon.svg",
+		"https://raw.githubusercontent.com/atomist-skills/github-release-monitor-skill/main/docs/images/icon.svg",
 
 	runtime: {
 		memory: 1024,
