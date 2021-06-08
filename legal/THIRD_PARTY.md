@@ -217,7 +217,7 @@ ISC License - [https://www.isc.org/downloads/software-support-policy/isc-license
 | `fs.realpath`               | `1.0.0`   | Isaac Z. Schlueter | [https://github.com/isaacs/fs.realpath](https://github.com/isaacs/fs.realpath)                               |
 | `get-caller-file`           | `2.0.5`   | Stefan Penner      | [https://github.com/stefanpenner/get-caller-file](https://github.com/stefanpenner/get-caller-file)           |
 | `get-svg-colors`            | `1.5.1`   |                    | [https://github.com/zeke/get-svg-colors](https://github.com/zeke/get-svg-colors)                             |
-| `glob-parent`               | `5.1.1`   | Gulp Team          | [https://github.com/gulpjs/glob-parent](https://github.com/gulpjs/glob-parent)                               |
+| `glob-parent`               | `5.1.2`   | Gulp Team          | [https://github.com/gulpjs/glob-parent](https://github.com/gulpjs/glob-parent)                               |
 | `glob`                      | `7.1.6`   | Isaac Z. Schlueter | [https://github.com/isaacs/node-glob](https://github.com/isaacs/node-glob)                                   |
 | `graceful-fs`               | `4.2.4`   |                    | [https://github.com/isaacs/node-graceful-fs](https://github.com/isaacs/node-graceful-fs)                     |
 | `har-schema`                | `2.0.0`   | Ahmad Nassri       | [https://github.com/ahmadnassri/har-schema](https://github.com/ahmadnassri/har-schema)                       |
